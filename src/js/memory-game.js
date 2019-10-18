@@ -1,22 +1,44 @@
 const template = document.createElement('template')
 template.innerHTML = `
 <style>
+.grid-container {
+  display: grid; 
+  grid-template-columns: auto auto; 
+}
+.memory-game {
+  padding: 2px; 
+  resize: both; 
+  overflow: auto; 
+  border-style: solid; 
+  border-color: blue; 
+  text-align: left;  
+}
 
+.fixed-ratio-resize { /* basic responsive img */
+  max-width: 10%;
+  height: auto;
+  width: auto\9; /* IE8 */
+}
 
+img {
+  height: 10vw;
+  width: 10vw; 
+  float: left; 
+  padding: 0 2%; 
+}
 </style>
-<div>
-  <p id ='memory-game'></p>
+<div class="gird-container">
+  <div class="memory-game" id ='memory-game'></div>
 </div>
-
 `
 class MemoryGame extends window.HTMLElement {
-  constructor () {
+  constructor (rows = 2, cols = 2) {
     super()
     this.attachShadow({ mode: 'open' })
     this.shadowRoot.appendChild(template.content.cloneNode(true))
     this.appendAt = this.shadowRoot.querySelector('#memory-game')
-    this.rows = 2
-    this.cols = 2
+    this.rows = rows
+    this.cols = cols
   }
 
   createBoard (rows, cols) {
@@ -43,19 +65,13 @@ class MemoryGame extends window.HTMLElement {
   }
 
   showBoard (board) {
-    let i2 = 0
     for (let i = 0; i < board.length; i++) {
       const img = document.createElement('img')
       img.setAttribute('src', 'image/0.png')
       img.setAttribute('id', `${i}`)
       img.setAttribute('val', `image/${board[i]}.png`)
+      img.setAttribute('class', 'fixed-ratio-resize')
       this.appendAt.appendChild(img)
-      i2++
-      if (i2 === this.cols) {
-        const breakline = document.createElement('br')
-        this.appendAt.appendChild(breakline)
-        i2 = 0
-      }
     }
     this.playGame(board)
   }
@@ -68,41 +84,28 @@ class MemoryGame extends window.HTMLElement {
     for (let i = 0; i < board.length; i++) {
       const img = this.shadowRoot.getElementById(i)
       img.addEventListener('click', (event) => {
-        console.log('NumHidden: ' + numHidden)
         clickNum++
-        console.log(clickNum)
         if (clickNum === 1) {
-          console.log('In here')
           // Show that tile
           first = event.target
-          console.log(first)
           const val = first.getAttribute('val')
           first.setAttribute('src', val)
-          console.log(clickNum)
-          console.log(first)
           return first
         } else if (clickNum === 2 && (first.getAttribute('val') === event.target.getAttribute('val') && (first.id !== event.target.id))) {
-          console.log(first)
           // Remove those tiles
-          console.log(first.getAttribute('val'))
-          console.log(event.target.getAttribute('val'))
           first.style.visibility = 'hidden'
           event.target.style.visibility = 'hidden'
           numHidden += 2
-          if (numHidden === 8) {
+          if (numHidden === (this.rows * this.cols)) {
             this.restartGame()
           }
           clickNum = 0
         } else if (clickNum === 2 && (first.getAttribute('val') !== event.target.getAttribute('val'))) {
           second = event.target
-          console.log(second)
           const val = second.getAttribute('val')
           second.setAttribute('src', val)
-          console.log(clickNum)
-          console.log(second)
           return second
         } else if (clickNum === 3) {
-          console.log('In here')
           first.setAttribute('src', 'image/0.png')
           second.setAttribute('src', 'image/0.png')
           clickNum = 0
@@ -115,6 +118,16 @@ class MemoryGame extends window.HTMLElement {
     while (this.appendAt.firstChild) {
       this.appendAt.removeChild(this.appendAt.firstChild)
     }
+    const notify = document.createElement('label')
+    notify.innerHTML = 'Game Completed Play Again?'
+    const playAgainButton = document.createElement('button')
+    playAgainButton.innerHTML = 'Yes!'
+    this.appendAt.appendChild(notify).appendChild(playAgainButton)
+    playAgainButton.addEventListener('click', (event) => {
+      notify.remove()
+      playAgainButton.remove()
+      this.createBoard(this.rows, this.cols)
+    })
   }
 }
 window.customElements.define('memory-game', MemoryGame)
