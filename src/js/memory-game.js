@@ -27,7 +27,7 @@ img {
   padding: 0 2%; 
 }
 </style>
-<div class="gird-container">
+<div class="grid-container">
   <div class="memory-game" id ='memory-game'></div>
 </div>
 `
@@ -67,11 +67,14 @@ class MemoryGame extends window.HTMLElement {
   showBoard (board) {
     for (let i = 0; i < board.length; i++) {
       const img = document.createElement('img')
+      const aTag = document.createElement('a')
+      aTag.setAttribute('href', '#')
+      aTag.setAttribute('id', `a${i}`)
       img.setAttribute('src', 'image/0.png')
-      img.setAttribute('id', `${i}`)
+      img.setAttribute('id', `img${i}`)
       img.setAttribute('val', `image/${board[i]}.png`)
       img.setAttribute('class', 'fixed-ratio-resize')
-      this.appendAt.appendChild(img)
+      this.appendAt.appendChild(aTag).appendChild(img)
     }
     this.playGame(board)
   }
@@ -82,12 +85,13 @@ class MemoryGame extends window.HTMLElement {
     let second
     let numHidden = 0
     for (let i = 0; i < board.length; i++) {
-      const img = this.shadowRoot.getElementById(i)
-      img.addEventListener('click', (event) => {
+      const a = this.shadowRoot.getElementById(`a${i}`)
+      a.addEventListener('click', (event) => {
         clickNum++
+        const img = event.target.nodeName === 'IMG' ? event.target : event.target.firstElementChild
         if (clickNum === 1) {
           // Show that tile
-          first = event.target
+          first = img
           const val = first.getAttribute('val')
           first.setAttribute('src', val)
           return first
@@ -101,7 +105,7 @@ class MemoryGame extends window.HTMLElement {
           }
           clickNum = 0
         } else if (clickNum === 2 && (first.getAttribute('val') !== event.target.getAttribute('val'))) {
-          second = event.target
+          second = img
           const val = second.getAttribute('val')
           second.setAttribute('src', val)
           return second
